@@ -1,0 +1,808 @@
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Monoton', cursive; /* Utilise la police Monoton */
+   
+}
+
+body {
+    font-family: 'Monoton', cursive; /* Utilise la police Monoton */
+    background: linear-gradient(135deg, #0a2342 0%, #1b3b6f 100%);
+    height: 100vh;
+    overflow: hidden;
+    color: #ffffff;
+    position: relative;
+}
+
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.hidden {
+    display: none;
+}
+
+.container {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+h1 {
+    margin-bottom: 2rem;
+    color: #ffffff;
+    font-size: 2.5em;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+input {
+    padding: 0.8rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(255,255,255,0.2);
+}
+
+button {
+    padding: 1rem 2rem;
+    background: linear-gradient(45deg, #c41e3a, #a71930);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    background: linear-gradient(45deg, #a71930, #c41e3a);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(196, 30, 58, 0.3);
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0)
+    );
+    transform: rotate(45deg);
+    animation: button-shine 3s infinite;
+}
+
+@keyframes button-shine {
+    0% {
+        transform: translateX(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) rotate(45deg);
+    }
+}
+
+.toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem 2rem;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.player-info {
+    font-size: 1rem;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-left: 10px;
+    font-size: 0.8rem;
+}
+
+.stats div {
+    display: block;
+    margin: 2px 0;
+    white-space: nowrap;
+}
+
+.stats span {
+    margin: 0 0.2rem;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.color-palette {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.color-option {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.color-option:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.color-option.selected {
+    border-color: #ffffff;
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(255,255,255,0.3);
+}
+
+.move-mode {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    color: #ffffff;
+}
+
+.move-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 50px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 13px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.move-toggle::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.move-toggle:checked {
+    background: #4CAF50;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.move-toggle:checked::before {
+    transform: translateX(24px);
+    background: #ffffff;
+}
+
+.move-toggle:hover::before {
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.move-toggle::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.move-mode label {
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.game-container {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    cursor: pointer;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+    touch-action: none;
+}
+
+#game-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+#end-screen .container {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+#winner-announcement {
+    font-size: 1.5em;
+    margin: 1rem 0;
+    color: #4CAF50;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+#final-scores {
+    margin: 1.5rem 0;
+    font-size: 1.1em;
+    color: #ffffff;
+}
+
+.snowflake {
+    position: fixed;
+    background: white;
+    border-radius: 50%;
+    filter: blur(1px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(0) translateX(-5px);
+    }
+    50% {
+        transform: translateY(50vh) translateX(5px);
+    }
+    100% {
+        transform: translateY(105vh) translateX(-5px);
+    }
+}
+
+.pixel-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.pixel-animation::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 30% 20%, rgba(76, 175, 80, 0.1) 0%, transparent 8%),
+        radial-gradient(circle at 70% 60%, rgba(76, 175, 80, 0.1) 0%, transparent 8%),
+        radial-gradient(circle at 40% 80%, rgba(76, 175, 80, 0.1) 0%, transparent 8%),
+        radial-gradient(circle at 80% 30%, rgba(76, 175, 80, 0.1) 0%, transparent 8%);
+    animation: floatingPixels 8s ease-in-out infinite;
+}
+
+@keyframes floatingPixels {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-20px) scale(1.1);
+    }
+}
+
+/* Flocons de neige */
+/* Media Queries */
+@media screen and (max-width: 768px) {
+    .toolbar {
+        height: 80px;
+        padding: 5px;
+        flex-wrap: wrap;
+    }
+
+    .game-container {
+        top: 80px;
+    }
+
+    .stats-container {
+        font-size: 0.9em;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .color-palette {
+        gap: 5px;
+    }
+
+    .color-option {
+        width: 25px;
+        height: 25px;
+    }
+
+    .player-info {
+        font-size: 0.9em;
+    }
+
+    .login-screen {
+        padding: 20px;
+    }
+
+    .login-container {
+        width: 90%;
+        max-width: 400px;
+        padding: 20px;
+    }
+
+    .login-title {
+        font-size: 2em;
+    }
+
+    .player-name-input {
+        width: 100%;
+        font-size: 1em;
+    }
+
+    .start-button {
+        width: 100%;
+        font-size: 1em;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .toolbar {
+        height: auto;
+        min-height: 100px;
+        padding: 10px 5px;
+    }
+
+    .game-container {
+        top: 100px;
+    }
+
+    .stats-container {
+        font-size: 0.8em;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .stats-container > div {
+        text-align: center;
+        width: 100%;
+    }
+
+    .color-palette {
+        gap: 3px;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 100%;
+        padding: 5px;
+    }
+
+    .color-option {
+        width: 20px;
+        height: 20px;
+    }
+
+    .player-info {
+        font-size: 0.8em;
+        width: 100%;
+        text-align: center;
+    }
+
+    .move-toggle-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin: 5px 0;
+    }
+
+    .login-container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .login-title {
+        font-size: 1.8em;
+    }
+
+    .background-text {
+        font-size: 4em;
+    }
+
+    .pixel {
+        width: 3px;
+        height: 3px;
+    }
+}
+
+@media screen and (max-height: 600px) {
+    .login-container {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .login-title {
+        font-size: 1.8em;
+        margin: 10px 0;
+    }
+
+    .player-name-input {
+        margin: 10px 0;
+    }
+
+    .start-button {
+        margin: 10px 0;
+    }
+}
+
+@media (hover: hover) {
+    .color-option:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .start-button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Orientation Landscape pour mobile */
+@media screen and (max-height: 480px) and (orientation: landscape) {
+    .toolbar {
+        height: auto;
+        min-height: 60px;
+        padding: 5px;
+    }
+
+    .game-container {
+        top: 60px;
+    }
+
+    .stats-container {
+        font-size: 0.7em;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+    }
+
+    .color-palette {
+        flex-wrap: wrap;
+        max-width: 50%;
+    }
+
+    .login-container {
+        width: 70%;
+        max-height: 80vh;
+        padding: 10px;
+    }
+
+    .background-text {
+        font-size: 3em;
+    }
+}
+
+/* Support des écrans à haute résolution */
+@media screen and (min-width: 1920px) {
+    .toolbar {
+        height: 70px;
+        padding: 10px 20px;
+    }
+
+    .stats-container {
+        font-size: 1.2em;
+        gap: 30px;
+    }
+
+    .color-option {
+        width: 40px;
+        height: 40px;
+    }
+
+    .login-container {
+        max-width: 600px;
+    }
+
+    .login-title {
+        font-size: 3em;
+    }
+
+    .background-text {
+        font-size: 8em;
+    }
+}
+
+/* Support du mode sombre du système */
+@media (prefers-color-scheme: dark) {
+    .toolbar {
+        background: rgba(30, 30, 30, 0.9);
+    }
+
+    .login-container {
+        background: rgba(30, 30, 30, 0.8);
+    }
+
+    .player-name-input {
+        background: rgba(50, 50, 50, 0.8);
+        color: #ffffff;
+    }
+
+    .start-button {
+        background: #2d6a4f;
+    }
+
+    .start-button:hover {
+        background: #3b8a64;
+    }
+}
+
+/* Optimisations spécifiques pour mobile */
+@media screen and (max-width: 380px), 
+       screen and (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+    .toolbar {
+        height: auto;
+        min-height: 120px;
+        padding: 8px 5px;
+        gap: 8px;
+    }
+
+    .game-container {
+        top: 120px;
+    }
+
+    .stats-container {
+        font-size: 0.75em;
+        padding: 5px;
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .color-palette {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(25px, 1fr));
+        gap: 4px;
+        padding: 4px;
+        max-width: 100%;
+        justify-content: center;
+    }
+
+    .color-option {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        margin: 2px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .move-toggle-container {
+        order: -1;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin: 4px 0;
+        padding: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+    }
+
+    .player-info {
+        width: 100%;
+        text-align: center;
+        padding: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        margin: 2px 0;
+    }
+
+    /* Style spécial pour les statistiques sur mobile */
+    .stats-container > div {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 6px;
+        border-radius: 15px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stats-container > div span:first-child {
+        font-weight: bold;
+        margin-right: 8px;
+    }
+
+    /* Optimisations pour l'écran de login sur mobile */
+    .login-container {
+        width: 92%;
+        padding: 15px;
+        border-radius: 20px;
+        max-height: 85vh;
+    }
+
+    .login-title {
+        font-size: 1.6em;
+        margin-bottom: 15px;
+    }
+
+    .player-name-input {
+        height: 45px;
+        border-radius: 22px;
+        padding: 0 15px;
+        margin: 10px 0;
+        width: 100%;
+        font-size: 16px;
+        border: none;
+    }
+
+    .start-button {
+        height: 45px;
+        border-radius: 22px;
+        font-size: 1em;
+        margin-top: 15px;
+        width: 100%;
+        font-weight: bold;
+    }
+
+    /* Ajustements pour les pixels d'animation */
+    .pixel {
+        width: 2px;
+        height: 2px;
+    }
+
+    .background-text {
+        font-size: 3em;
+        opacity: 0.3;
+    }
+}
+
+/* Optimisations pour iPhone avec encoche */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .toolbar {
+        padding-top: max(5px, env(safe-area-inset-top));
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+
+    .game-container {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .login-screen {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Désactiver les effets de survol sur les appareils tactiles */
+@media (hover: none) {
+    .color-option:active {
+        transform: scale(0.95);
+        transition: transform 0.1s;
+    }
+
+    .start-button:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+}
+
+/* Optimisations pour les appareils à écran de très petite taille */
+@media screen and (max-width: 320px) {
+    .toolbar {
+        min-height: 140px;
+    }
+
+    .game-container {
+        top: 140px;
+    }
+
+    .stats-container {
+        font-size: 0.7em;
+    }
+
+    .color-palette {
+        grid-template-columns: repeat(auto-fill, minmax(20px, 1fr));
+    }
+
+    .color-option {
+        width: 20px;
+        height: 20px;
+    }
+
+    .login-title {
+        font-size: 1.4em;
+    }
+}
+
+/* Empêcher le zoom sur iOS lors du focus des inputs */
+@supports (-webkit-touch-callout: none) {
+    input[type="text"],
+    input[type="number"] {
+        font-size: 16px !important;
+    }
+}

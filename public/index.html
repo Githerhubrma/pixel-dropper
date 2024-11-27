@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Pixel Dropper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-screen" class="screen">
+        <div id="snowflakes"></div>
+        <div class="container">
+            <h1> THE WORLD</h1>
+            <input type="text" id="player-name" placeholder="Entrez votre pseudo">
+            <button id="start-button"> PLAY </button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen hidden">
+        <div class="toolbar">
+            <div class="stats-container">
+                <div class="player-info">Joueur : <span id="player-name-display"></span></div>
+                <div class="stats">
+                    <div>Pixels placés : <span id="pixels-placed">0</span> (<span id="pixels-placed-percent">0</span>%)</div>
+                    <div>Pixels restants : <span id="pixels-remaining">0</span> (<span id="pixels-remaining-percent">0</span>%)</div>
+                    <div>Joueurs en ligne : <span id="players-remaining">0</span></div>
+                </div>
+            </div>
+            <div class="controls">
+                <div id="color-palette" class="color-palette">
+                    <!-- Les couleurs seront ajoutées dynamiquement par JavaScript -->
+                </div>
+                <div class="move-mode">
+                    <input type="checkbox" id="move-toggle" class="move-toggle"><label for="move-toggle">Mode déplacement</label>
+                </div>
+            </div>
+        </div>
+        <div class="game-container">
+            <canvas id="game-canvas"></canvas>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen hidden">
+        <div class="container">
+            <h2>Partie terminée!</h2>
+            <div id="winner-announcement"></div>
+            <div id="final-scores"></div>
+            <button id="play-again">Rejouer</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Création des flocons de neige
+        const snowflakesContainer = document.getElementById('snowflakes');
+        const numberOfSnowflakes = 100;
+
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            
+            // Position initiale aléatoire en haut de la page
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.top = '-10px';
+            
+            // Propriétés aléatoires pour chaque flocon
+            const size = Math.random() * 4 + 4;
+            const duration = Math.random() * 3 + 5;
+            const delay = Math.random() * 10;
+            
+            snowflake.style.width = size + 'px';
+            snowflake.style.height = size + 'px';
+            snowflake.style.opacity = Math.random() * 0.6 + 0.2;
+            
+            // Applique l'animation avec un délai aléatoire
+            snowflake.style.animation = `snowfall ${duration}s linear ${delay}s infinite`;
+            
+            snowflakesContainer.appendChild(snowflake);
+        }
+
+        // Création progressive des flocons
+        let flakesCreated = 0;
+        function addSnowflakes() {
+            if (flakesCreated < numberOfSnowflakes) {
+                createSnowflake();
+                flakesCreated++;
+                // Ajoute 2 flocons toutes les 100ms
+                setTimeout(addSnowflakes, 100);
+            }
+        }
+
+        // Démarre la création des flocons
+        addSnowflakes();
+    </script>
+</body>
+</html>

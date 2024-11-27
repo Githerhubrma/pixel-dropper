@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: pixel-dropper
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    disk:
+      name: game-data
+      mountPath: /var/data
+      sizeGB: 1
