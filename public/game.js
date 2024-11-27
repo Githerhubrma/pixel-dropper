@@ -43,6 +43,7 @@ let moveMode = false;
 let moveTimeout = null;
 let moveStartX = 0;
 let moveStartY = 0;
+let lastPlacedPixel = { x: -1, y: -1 }; // Pour éviter les doublons
 
 // Variables pour les statistiques
 let totalPixels = GRID_SIZE * GRID_SIZE;
@@ -127,29 +128,59 @@ function selectColor(color, element) {
     element.classList.add('selected');
 }
 
+// Fonction pour placer un pixel
+function placePixel(gridX, gridY) {
+    if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+        const cellKey = `${gridX},${gridY}`;
+        // Éviter de placer le même pixel deux fois
+        if (lastPlacedPixel.x === gridX && lastPlacedPixel.y === gridY) {
+            return;
+        }
+        // Éviter de placer un pixel de la même couleur
+        if (gameState.grid[cellKey] === currentColor) {
+            return;
+        }
+        
+        socket.emit('placePixel', {
+            x: gridX,
+            y: gridY,
+            color: currentColor
+        });
+        
+        lastPlacedPixel = { x: gridX, y: gridY };
+    }
+}
+
 // Gestion des événements de la souris
 function handleMouseDown(e) {
-    if (e.button === 0 && !moveMode) { // Clic gauche et pas en mode déplacement
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = (e.clientX - rect.left) / zoom + viewportX;
-        const mouseY = (e.clientY - rect.top) / zoom + viewportY;
-        
-        const gridX = Math.floor(mouseX / CELL_SIZE);
-        const gridY = Math.floor(mouseY / CELL_SIZE);
-        
-        if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
-            // Émettre l'événement de placement de pixel
-            socket.emit('placePixel', {
-                x: gridX,
-                y: gridY,
-                color: currentColor
-            });
-        }
-    } else if (e.button === 2 || moveMode) { // Clic droit ou mode déplacement
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+
+    // Clic droit pour le déplacement rapide
+    if (e.button === 2) {
         isDragging = true;
-        lastMouseX = e.clientX;
-        lastMouseY = e.clientY;
         canvas.style.cursor = 'grabbing';
+        return;
+    }
+
+    // Mode déplacement avec clic gauche
+    if (moveMode && e.button === 0) {
+        isDragging = true;
+        canvas.style.cursor = 'grabbing';
+        return;
+    }
+
+    // Mode placement de pixel avec clic gauche
+    if (!moveMode && e.button === 0) {
+        isPlacingPixel = true;
+        canvas.style.cursor = 'pointer';
+        const gridX = Math.floor((mouseX / zoom + viewportX) / CELL_SIZE);
+        const gridY = Math.floor((mouseY / zoom + viewportY) / CELL_SIZE);
+        placePixel(gridX, gridY);
     }
 }
 
@@ -158,52 +189,29 @@ function handleMouseMove(e) {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    // Déplacement de la vue (drag)
     if (isDragging) {
-        viewportX -= (mouseX - lastMouseX) / zoom;
-        viewportY -= (mouseY - lastMouseY) / zoom;
+        const deltaX = mouseX - lastMouseX;
+        const deltaY = mouseY - lastMouseY;
+        
+        viewportX -= deltaX / zoom;
+        viewportY -= deltaY / zoom;
+        
         lastMouseX = mouseX;
         lastMouseY = mouseY;
+        
         draw();
-        return;
-    }
-
-    // Placement continu de pixels
-    if (!moveMode && isPlacingPixel && e.buttons === 1) {
-        canvas.style.cursor = 'pointer';
+    } else if (isPlacingPixel && !moveMode) {
         const gridX = Math.floor((mouseX / zoom + viewportX) / CELL_SIZE);
         const gridY = Math.floor((mouseY / zoom + viewportY) / CELL_SIZE);
-        
-        if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
-            const cellKey = `${gridX},${gridY}`;
-            if (gameState.grid[cellKey] !== currentColor) {
-                socket.emit('placePixel', {
-                    x: gridX,
-                    y: gridY,
-                    color: currentColor
-                });
-                
-                // Mise à jour locale immédiate pour les statistiques
-                if (!gameState.grid[cellKey]) {
-                    placedPixels++;
-                    remainingPixels = totalPixels - placedPixels;
-                    updateStats();
-                }
-                gameState.grid[cellKey] = currentColor;
-                draw();
-            }
-        }
-    } else if (!isDragging && !moveMode) {
-        canvas.style.cursor = 'pointer';
+        placePixel(gridX, gridY);
     }
 }
 
 function handleMouseUp(e) {
-    if (isDragging) {
-        isDragging = false;
-        canvas.style.cursor = moveMode ? 'grab' : 'pointer';
-    }
+    isDragging = false;
     isPlacingPixel = false;
+    canvas.style.cursor = moveMode ? 'grab' : 'pointer';
+    lastPlacedPixel = { x: -1, y: -1 }; // Réinitialiser le dernier pixel placé
 }
 
 function handleWheel(e) {
