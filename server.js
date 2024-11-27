@@ -24,8 +24,8 @@ let gameState = {
 };
 
 // Configuration de la base de données
-const dbPath = process.env.FLY_IO 
-    ? '/data/game.db'
+const dbPath = process.env.PROJECT_DIR
+    ? path.join(process.env.PROJECT_DIR, '.data', 'game.db')
     : path.join(__dirname, 'game.db');
 
 // Créer le dossier de la base de données si nécessaire
@@ -163,11 +163,11 @@ process.on('SIGINT', () => {
     });
 });
 
-// Port pour le serveur (Railway définit automatiquement PORT)
+// Port pour le serveur
 const PORT = process.env.PORT || 3000;
 
 // Démarrage du serveur
-http.listen(PORT, '0.0.0.0', () => {
+http.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
     console.log('Chemin de la base de données:', dbPath);
 });
