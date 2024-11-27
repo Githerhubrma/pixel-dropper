@@ -129,44 +129,27 @@ function selectColor(color, element) {
 
 // Gestion des événements de la souris
 function handleMouseDown(e) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
-
-    // Clic droit pour le déplacement rapide
-    if (e.button === 2) {
-        isDragging = true;
-        canvas.style.cursor = 'grabbing';
-        return;
-    }
-
-    // Mode déplacement avec clic gauche
-    if (moveMode && e.button === 0) {
-        isDragging = true;
-        canvas.style.cursor = 'grabbing';
-        return;
-    }
-
-    // Mode placement de pixel avec clic gauche
-    if (!moveMode && e.button === 0) {
-        canvas.style.cursor = 'pointer';
-        const gridX = Math.floor((mouseX / zoom + viewportX) / CELL_SIZE);
-        const gridY = Math.floor((mouseY / zoom + viewportY) / CELL_SIZE);
-
+    if (e.button === 0 && !moveMode) { // Clic gauche et pas en mode déplacement
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) / zoom + viewportX;
+        const mouseY = (e.clientY - rect.top) / zoom + viewportY;
+        
+        const gridX = Math.floor(mouseX / CELL_SIZE);
+        const gridY = Math.floor(mouseY / CELL_SIZE);
+        
         if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
-            isPlacingPixel = true;
-            const cellKey = `${gridX},${gridY}`;
-            if (gameState.grid[cellKey] !== currentColor) {
-                socket.emit('placePixel', {
-                    x: gridX,
-                    y: gridY,
-                    color: currentColor
-                });
-            }
+            // Émettre l'événement de placement de pixel
+            socket.emit('placePixel', {
+                x: gridX,
+                y: gridY,
+                color: currentColor
+            });
         }
+    } else if (e.button === 2 || moveMode) { // Clic droit ou mode déplacement
+        isDragging = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        canvas.style.cursor = 'grabbing';
     }
 }
 
@@ -475,16 +458,25 @@ let gameState = {
     grid: {}
 };
 
+// Réception de l'état initial du jeu
 socket.on('gameState', (state) => {
     console.log('État du jeu reçu:', state);
-    gameState.grid = state.grid || {};
-    placedPixels = Object.keys(gameState.grid).length;
-    remainingPixels = totalPixels - placedPixels;
-    updateStats();
-    draw();
+    if (state && state.grid) {
+        gameState.grid = state.grid;
+        placedPixels = Object.keys(gameState.grid).length;
+        remainingPixels = totalPixels - placedPixels;
+        updateStats();
+        draw();
+    }
 });
 
+// Réception des mises à jour de pixels
 socket.on('pixelUpdate', (data) => {
+    if (!data || typeof data.x === 'undefined' || typeof data.y === 'undefined' || !data.color) {
+        console.error('Données de pixel invalides reçues:', data);
+        return;
+    }
+
     console.log('Mise à jour de pixel reçue:', data);
     const cellKey = `${data.x},${data.y}`;
     
@@ -499,12 +491,25 @@ socket.on('pixelUpdate', (data) => {
     draw();
 });
 
-// Supprimer l'événement pixelPlaced car nous utilisons pixelUpdate
-socket.off('pixelPlaced');
-
+// Mise à jour du nombre de joueurs
 socket.on('playerCount', (count) => {
-    remainingPlayers = count;
-    updateStats(); // Mettre à jour les statistiques
+    if (typeof count === 'number') {
+        remainingPlayers = count;
+        updateStats();
+    }
+});
+
+// Gestion des erreurs de connexion
+socket.on('connect_error', (error) => {
+    console.error('Erreur de connexion au serveur:', error);
+});
+
+socket.on('connect', () => {
+    console.log('Connecté au serveur');
+});
+
+socket.on('disconnect', () => {
+    console.log('Déconnecté du serveur');
 });
 
 // Initialiser le jeu au chargement

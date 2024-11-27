@@ -93,6 +93,11 @@ db = new sqlite3.Database(dbPath, (err) => {
 io.on('connection', (socket) => {
     console.log('Un joueur s\'est connecté');
 
+    // Envoyer immédiatement l'état actuel du jeu au nouveau client
+    socket.emit('gameState', {
+        grid: gameState.grid
+    });
+
     // Fonction pour mettre à jour le nombre de joueurs
     const updatePlayerCount = () => {
         io.emit('playerCount', gameState.players.size);
@@ -100,10 +105,6 @@ io.on('connection', (socket) => {
 
     socket.on('join', (playerName) => {
         gameState.players.set(socket.id, { name: playerName });
-        // Envoyer l'état complet du jeu au nouveau joueur
-        socket.emit('gameState', {
-            grid: gameState.grid
-        });
         updatePlayerCount();
     });
 
@@ -124,7 +125,7 @@ io.on('connection', (socket) => {
                     return;
                 }
                 
-                // Mettre à jour l'état du jeu et informer les clients seulement si la sauvegarde a réussi
+                // Mettre à jour l'état du jeu et informer TOUS les clients
                 gameState.grid[cellKey] = data.color;
                 io.emit('pixelUpdate', {
                     x: data.x,
