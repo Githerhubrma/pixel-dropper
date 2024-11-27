@@ -20,20 +20,18 @@ let gameState = {
 
 // Configuration de la base de données
 // Chemin de la base de données
-const dbPath = process.env.NODE_ENV === 'production' 
-    ? '/var/data/game.db'
+const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+    ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'game.db')
     : path.join(__dirname, 'game.db');
 
-// Créer le dossier /var/data si on est en production
-if (process.env.NODE_ENV === 'production') {
-    const dbDir = path.dirname(dbPath);
-    if (!fs.existsSync(dbDir)) {
-        try {
-            fs.mkdirSync(dbDir, { recursive: true });
-            console.log('Dossier de base de données créé:', dbDir);
-        } catch (err) {
-            console.error('Erreur lors de la création du dossier:', err);
-        }
+// Créer le dossier de la base de données si nécessaire
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+    try {
+        fs.mkdirSync(dbDir, { recursive: true });
+        console.log('Dossier de base de données créé:', dbDir);
+    } catch (err) {
+        console.error('Erreur lors de la création du dossier:', err);
     }
 }
 
@@ -157,7 +155,9 @@ process.on('SIGINT', () => {
     });
 });
 
+// Port pour le serveur
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
+    console.log('Chemin de la base de données:', dbPath);
 });
