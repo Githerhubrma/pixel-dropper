@@ -24,7 +24,20 @@ let gameState = {
 };
 
 // Configuration de la base de données
-const dbPath = path.join(__dirname, 'game.db');
+const dbPath = process.env.FLY_IO 
+    ? '/data/game.db'
+    : path.join(__dirname, 'game.db');
+
+// Créer le dossier de la base de données si nécessaire
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+    try {
+        fs.mkdirSync(dbDir, { recursive: true });
+        console.log('Dossier de base de données créé:', dbDir);
+    } catch (err) {
+        console.error('Erreur lors de la création du dossier:', err);
+    }
+}
 
 // Créer une nouvelle instance de la base de données
 let db = new sqlite3.Database(dbPath, (err) => {
@@ -44,17 +57,6 @@ let db = new sqlite3.Database(dbPath, (err) => {
         setupDatabase(db);
     }
 });
-
-// Créer le dossier de la base de données si nécessaire
-const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) {
-    try {
-        fs.mkdirSync(dbDir, { recursive: true });
-        console.log('Dossier de base de données créé:', dbDir);
-    } catch (err) {
-        console.error('Erreur lors de la création du dossier:', err);
-    }
-}
 
 const setupDatabase = (database) => {
     database.serialize(() => {
@@ -167,4 +169,5 @@ const PORT = process.env.PORT || 3000;
 // Démarrage du serveur
 http.listen(PORT, '0.0.0.0', () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
+    console.log('Chemin de la base de données:', dbPath);
 });
