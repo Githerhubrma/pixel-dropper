@@ -24,10 +24,26 @@ let gameState = {
 };
 
 // Configuration de la base de données
-// Chemin de la base de données
-const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
-    ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'game.db')
-    : path.join(__dirname, 'game.db');
+const dbPath = path.join(__dirname, 'game.db');
+
+// Créer une nouvelle instance de la base de données
+let db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Erreur de connexion à la base de données:', err);
+        // Utiliser une base de données en mémoire comme fallback
+        db = new sqlite3.Database(':memory:', (err) => {
+            if (err) {
+                console.error('Erreur avec la base de données en mémoire:', err);
+                process.exit(1);
+            }
+            console.log('Utilisation d\'une base de données en mémoire');
+            setupDatabase(db);
+        });
+    } else {
+        console.log('Connecté à la base de données SQLite');
+        setupDatabase(db);
+    }
+});
 
 // Créer le dossier de la base de données si nécessaire
 const dbDir = path.dirname(dbPath);
@@ -40,8 +56,6 @@ if (!fs.existsSync(dbDir)) {
     }
 }
 
-// Créer une nouvelle instance de la base de données
-let db;
 const setupDatabase = (database) => {
     database.serialize(() => {
         // Activer les foreign keys et le mode WAL pour de meilleures performances
@@ -78,19 +92,6 @@ const setupDatabase = (database) => {
         });
     });
 };
-
-db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données:', err);
-        // Ne pas quitter le processus, continuer avec une base de données en mémoire
-        console.log('Utilisation d\'une base de données en mémoire comme fallback');
-        db = new sqlite3.Database(':memory:');
-        setupDatabase(db);
-    } else {
-        console.log('Connecté à la base de données SQLite');
-        setupDatabase(db);
-    }
-});
 
 // Gestion des connexions Socket.IO
 io.on('connection', (socket) => {
@@ -160,9 +161,10 @@ process.on('SIGINT', () => {
     });
 });
 
-// Port pour le serveur
+// Port pour le serveur (Railway définit automatiquement PORT)
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
+
+// Démarrage du serveur
+http.listen(PORT, '0.0.0.0', () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
-    console.log('Chemin de la base de données:', dbPath);
 });
