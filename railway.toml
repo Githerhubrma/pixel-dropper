@@ -4,8 +4,10 @@ buildCommand = "npm install"
 
 [deploy]
 startCommand = "node server.js"
-healthcheckPath = "/"
 restartPolicyType = "ON_FAILURE"
+
+[deploy.lifecycle]
+postDeploy = "echo 'Deployment complete!'"
 
 [[services]]
 name = "pixel-dropper"

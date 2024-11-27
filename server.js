@@ -12,6 +12,11 @@ const GRID_SIZE = 350;
 // Servir les fichiers statiques
 app.use(express.static('public'));
 
+// Route de healthcheck
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 // État du jeu
 let gameState = {
     grid: {},
