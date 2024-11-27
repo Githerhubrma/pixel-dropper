@@ -4,6 +4,7 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
 // Configuration
 const GRID_SIZE = 350;
@@ -17,54 +18,75 @@ let gameState = {
     players: new Map()
 };
 
+// Configuration de la base de données
 // Chemin de la base de données
 const dbPath = process.env.NODE_ENV === 'production' 
     ? '/var/data/game.db'
     : path.join(__dirname, 'game.db');
 
-// Créer une nouvelle instance de la base de données
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données:', err);
-        process.exit(1);
-    }
-    console.log('Connecté à la base de données SQLite');
-});
-
-// Initialiser la base de données et charger les pixels existants
-db.serialize(() => {
-    // Activer les foreign keys et le mode WAL pour de meilleures performances
-    db.run('PRAGMA foreign_keys = ON');
-    db.run('PRAGMA journal_mode = WAL');
-
-    // Créer la table des pixels si elle n'existe pas
-    db.run(`CREATE TABLE IF NOT EXISTS pixels (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        x INTEGER NOT NULL,
-        y INTEGER NOT NULL,
-        color TEXT NOT NULL,
-        player_name TEXT NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(x, y)
-    )`, (err) => {
-        if (err) {
-            console.error('Erreur lors de la création de la table:', err);
-            return;
+// Créer le dossier /var/data si on est en production
+if (process.env.NODE_ENV === 'production') {
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+        try {
+            fs.mkdirSync(dbDir, { recursive: true });
+            console.log('Dossier de base de données créé:', dbDir);
+        } catch (err) {
+            console.error('Erreur lors de la création du dossier:', err);
         }
-        console.log('Table pixels créée ou déjà existante');
+    }
+}
 
-        // Charger les pixels existants
-        db.all('SELECT x, y, color FROM pixels', [], (err, rows) => {
+// Créer une nouvelle instance de la base de données
+let db;
+const setupDatabase = (database) => {
+    database.serialize(() => {
+        // Activer les foreign keys et le mode WAL pour de meilleures performances
+        database.run('PRAGMA foreign_keys = ON');
+        database.run('PRAGMA journal_mode = WAL');
+
+        // Créer la table des pixels si elle n'existe pas
+        database.run(`CREATE TABLE IF NOT EXISTS pixels (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            x INTEGER NOT NULL,
+            y INTEGER NOT NULL,
+            color TEXT NOT NULL,
+            player_name TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(x, y)
+        )`, (err) => {
             if (err) {
-                console.error('Erreur lors du chargement des pixels:', err);
+                console.error('Erreur lors de la création de la table:', err);
                 return;
             }
-            rows.forEach(row => {
-                gameState.grid[`${row.x},${row.y}`] = row.color;
+            console.log('Table pixels créée ou déjà existante');
+
+            // Charger les pixels existants
+            database.all('SELECT x, y, color FROM pixels', [], (err, rows) => {
+                if (err) {
+                    console.error('Erreur lors du chargement des pixels:', err);
+                    return;
+                }
+                rows.forEach(row => {
+                    gameState.grid[`${row.x},${row.y}`] = row.color;
+                });
+                console.log(`${rows.length} pixels chargés de la base de données`);
             });
-            console.log(`${rows.length} pixels chargés de la base de données`);
         });
     });
+};
+
+db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Erreur de connexion à la base de données:', err);
+        // Ne pas quitter le processus, continuer avec une base de données en mémoire
+        console.log('Utilisation d\'une base de données en mémoire comme fallback');
+        db = new sqlite3.Database(':memory:');
+        setupDatabase(db);
+    } else {
+        console.log('Connecté à la base de données SQLite');
+        setupDatabase(db);
+    }
 });
 
 // Gestion des connexions Socket.IO
